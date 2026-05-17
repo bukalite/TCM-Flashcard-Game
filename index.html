@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>中藥 Flashcard Game</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; }
+    #card-img { max-width: 300px; max-height: 300px; display: block; margin: 20px auto; }
+    #answer { margin-top: 10px; }
+    #result { margin-top: 10px; font-weight: bold; }
+    #controls { margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+  <h1>中藥 Flashcard Game</h1>
+
+  <!-- 顯示圖片 -->
+  <img id="card-img" src="" alt="中藥圖片">
+
+  <!-- 用家輸入猜答案 -->
+  <div id="answer">
+    <input type="text" id="guessName" placeholder="寫中藥名">
+    <input type="text" id="guessProp" placeholder="寫屬性（例如：溫、寒、涼、熱、平）">
+    <button id="checkBtn">檢查答案</button>
+  </div>
+
+  <!-- 顯示正確 / 錯誤 -->
+  <div id="result"></div>
+
+  <!-- 控制按鈕 -->
+  <div id="controls">
+    <button id="showBtn">顯示正確答案</button>
+    <button id="nextBtn">下一張（隨機）</button>
+  </div>
+
+  <script>
+    // 內置卡片資料：你可以喺呢度加多啲
+    const cards = [
+      { imageFile: 'mawong.jpg',  name: '麻黃', property: '溫' },
+      { imageFile: 'kwaiji.jpg',  name: '桂枝', property: '溫' },
+      { imageFile: 'chisoyip.jpg', name: '紫蘇葉', property: '溫' },
+      { imageFile: 'sangkeung.jpg',  name: '生薑', property: '溫' },
+      { imageFile: 'keungwoot.jpg',  name: '羌活', property: '溫' },
+      { imageFile: 'bakji.jpg', name: '白芷', property: '溫' },
+      { imageFile: 'kohboon.jpg',  name: '藁本', property: '溫' },
+      { imageFile: 'chungbak.jpg',  name: '葱白', property: '溫' },
+      { imageFile: 'sunyi.jpg',  name: '辛夷', property: '溫' },
+      { imageFile: 'saisun.jpg',  name: '細辛', property: '溫小毒' },
+      { imageFile: 'chongyichi.jpg',  name: '蒼耳子', property: '溫小毒' },
+      { imageFile: 'weilingsin.jpg', name: '威靈仙', property: '溫' },
+      { imageFile: 'mukgwa.jpg',  name: '木瓜', property: '溫' },
+      { imageFile: 'donggwai.jpg',  name: '當歸', property: '溫' },
+      { imageFile: 'lukyung.jpg', name: '鹿茸', property: '溫' },
+      { imageFile: 'heungyu.jpg',  name: '香薷', property: '微溫' },
+      { imageFile: 'ginggai.jpg',  name: '荊芥', property: '微溫' },
+      { imageFile: 'fongfung.jpg',  name: '防風', property: '微溫' },
+      { imageFile: 'dukwoot.jpg',  name: '獨活', property: '微溫' },
+      { imageFile: 'bakiktin.jpg',  name: '巴㦸天', property: '微溫' },
+      { imageFile: 'shanja.jpg',  name: '山楂', property: '微溫' },
+      { imageFile: 'shekgo.jpg',  name: '石膏', property: '大寒' },
+      { imageFile: 'jimo.jpg',  name: '知母', property: '寒' },
+      { imageFile: 'wongsum.jpg',  name: '黃芩', property: '寒' },
+      { imageFile: 'wonglin.jpg',  name: '黃連', property: '寒' },
+      { imageFile: 'wongpak.jpg',  name: '黃柏', property: '寒' },
+      { imageFile: 'lungdam.jpg',  name: '龍膽', property: '寒' },
+      { imageFile: 'kamnganfa.jpg',  name: '金銀花', property: '寒' },
+      { imageFile: 'bannamgan.jpg',  name: '板藍根', property: '寒' },
+      { imageFile: 'segon.jpg',  name: '射干', property: '寒' },
+      { imageFile: 'aubongchi.jpg',  name: '牛蒡子', property: '寒' },
+      { imageFile: 'simtui.jpg',  name: '蟬蛻', property: '寒' },
+      { imageFile: 'songyip.jpg',  name: '桑葉', property: '寒' },
+      { imageFile: 'fohping.jpg',  name: '浮萍', property: '寒' },
+      { imageFile: 'kwanbo.jpg',  name: '昆布', property: '寒' },
+      { imageFile: 'hongfonggei.jpg',  name: '漢防己', property: '寒' },
+      { imageFile: 'luigungtaan.jpg',  name: '雷公藤', property: '寒大毒' },
+      { imageFile: 'daiwong.jpg',  name: '大黃', property: '寒' },
+      { imageFile: 'mongsiu.jpg',  name: '芒硝', property: '寒' },
+      { imageFile: 'gukfa.jpg',  name: '菊花', property: '微寒' },
+      { imageFile: 'mangingchi.jpg',  name: '蔓荊子', property: '微寒' },
+      { imageFile: 'chaiwoo.jpg',  name: '柴胡', property: '微寒' },
+      { imageFile: 'singma.jpg',  name: '升麻', property: '微寒' },
+      { imageFile: 'kuetmingchi.jpg',  name: '決明子', property: '微寒' },
+      { imageFile: 'tinfafun.jpg',  name: '天花粉', property: '微寒' },
+      { imageFile: 'linkiu.jpg',  name: '連翹', property: '微寒' },
+      { imageFile: 'yuensam.jpg',  name: '玄參', property: '微寒' },
+      { imageFile: 'lokshektan.jpg',  name: '絡石藤', property: '微寒' },
+      { imageFile: 'shekhap.jpg',  name: '石斛', property: '微寒' },
+      { imageFile: 'bakhap.jpg',  name: '百合', property: '微寒' },
+      { imageFile: 'bokhor.jpg',  name: '薄荷', property: '涼' },
+      { imageFile: 'kokgun.jpg',  name: '葛根', property: '涼' },
+      { imageFile: 'seiyeungsam.jpg',  name: '西洋參', property: '涼' },
+      { imageFile: 'mukchak.jpg',  name: '木賊', property: '平' },
+      { imageFile: 'tofukling.jpg',  name: '土茯苓', property: '平' },
+      { imageFile: 'woosausei.jpg',  name: '烏梢蛇', property: '平' },
+      { imageFile: 'lolotung.jpg',  name: '路路通', property: '平' },
+      { imageFile: 'chungau.jpg',  name: '秦艽', property: '平' },
+      { imageFile: 'songji.jpg',  name: '桑枝', property: '平' },
+    ];
+
+    let currentCard = null;
+
+    // 一打開即刻抽第一張
+    window.addEventListener('load', function() {
+      pickRandomCard();
+    });
+
+    // 隨機揀一張 card
+    function pickRandomCard() {
+      if (!cards.length) return;
+      const randomIndex = Math.floor(Math.random() * cards.length);
+      currentCard = cards[randomIndex];
+
+      const img = document.getElementById('card-img');
+      // 假設圖片放喺 index.html 同層嘅 images 資料夾
+      img.src = 'images/' + currentCard.imageFile;
+
+      // 清除舊輸入
+      document.getElementById('guessName').value = '';
+      document.getElementById('guessProp').value = '';
+      document.getElementById('result').textContent = '';
+    }
+
+    // 檢查答案
+    document.getElementById('checkBtn').addEventListener('click', function() {
+      if (!currentCard) return;
+
+      const guessName = document.getElementById('guessName').value.trim();
+      const guessProp = document.getElementById('guessProp').value.trim();
+
+      let msg = '';
+
+      const nameCorrect = guessName === currentCard.name;
+      const propCorrect = guessProp === currentCard.property;
+
+      if (nameCorrect && propCorrect) {
+        msg = '全部正確！';
+      } else if (nameCorrect && !propCorrect) {
+        msg = '藥名啱，屬性唔啱。';
+      } else if (!nameCorrect && propCorrect) {
+        msg = '屬性啱，藥名唔啱。';
+      } else {
+        msg = '藥名同屬性都唔啱。';
+      }
+
+      document.getElementById('result').textContent = msg;
+    });
+
+    // 顯示正確答案
+    document.getElementById('showBtn').addEventListener('click', function() {
+      if (!currentCard) return;
+      document.getElementById('result').textContent =
+        '正確：' + currentCard.name + '，屬性：' + currentCard.property;
+    });
+
+    // 下一張（隨機）
+    document.getElementById('nextBtn').addEventListener('click', function() {
+      pickRandomCard();
+    });
+  </script>
+</body>
+</html>
